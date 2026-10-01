@@ -1,0 +1,2512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- META VIEWPORT AJUSTADO PARA MÓVILES Y TABLETS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prevención Volcán Puracé - Plataforma Interactiva</title>
+    <style>
+        :root {
+            --naranja-fuego: #ff5722;
+            --naranja-neon: #ff7043;
+            --amarillo-lava: #ffca28;
+            --rojo-volcan: #e53935;
+            --verde-exito: #4caf50;
+            --oscuro-fondo: #0a0b10;
+            --tarjeta-bg: #161923;
+            --blanco: #ffffff;
+            --glow-fuego: 0 0 35px rgba(255, 87, 34, 0.8), 0 0 15px rgba(255, 202, 40, 0.6);
+            --glow-neon: 0 0 20px #ff5722;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--oscuro-fondo);
+            color: var(--blanco);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 10px;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 950px;
+            min-height: 680px;
+            max-height: 95vh;
+            background: rgba(22, 25, 35, 0.94);
+            backdrop-filter: blur(16px);
+            border-radius: 25px;
+            border: 3px solid rgba(255, 87, 34, 0.5);
+            box-shadow: var(--glow-fuego);
+            z-index: 10;
+            position: relative;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(10, 11, 16, 0.85);
+            border-bottom: 2px solid rgba(255, 87, 34, 0.3);
+            flex-wrap: wrap;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .btn-nav {
+            background: linear-gradient(45deg, #263238, #37474f);
+            color: var(--blanco);
+            border: 2px solid var(--naranja-fuego);
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            touch-action: manipulation;
+        }
+
+        .btn-nav:hover,
+        .btn-nav:active {
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, var(--naranja-fuego), var(--amarillo-lava));
+            color: #000;
+            box-shadow: var(--glow-neon);
+        }
+
+        .btn-menu-back {
+            background: linear-gradient(45deg, #c62828, #e53935);
+            border-color: #ff8a80;
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #f57c00, #ffb74d);
+            border-color: #ffe082;
+            color: #000;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .cover-hero {
+            position: relative;
+            width: 100%;
+            padding: 30px 15px;
+            border-radius: 20px;
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(255, 87, 34, 0.3) 0%,
+                    rgba(10, 11, 16, 0.85) 80%
+                ),
+                url('https://images.unsplash.com/photo-1541845157-a6d2d100c931?auto=format&fit=crop&w=1200&q=80')
+                center/cover no-repeat;
+            border: 3px solid var(--amarillo-lava);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8), var(--glow-fuego);
+            margin-bottom: 20px;
+        }
+
+        /* LOGO DE LA INSTITUCIÓN */
+        .institution-logo {
+            width: 115px;
+            height: 115px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px;
+            padding: 8px;
+            margin: 0 auto 15px;
+            display: block;
+            box-shadow: 0 0 25px rgba(255, 202, 40, 0.5);
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: var(--rojo-volcan);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px var(--rojo-volcan);
+            margin-bottom: 12px;
+        }
+
+        .title-glow {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(
+                180deg,
+                #ffffff 0%,
+                var(--amarillo-lava) 50%,
+                var(--naranja-fuego) 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 87, 34, 0.6);
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .quote-banner {
+            background: rgba(0, 0, 0, 0.85);
+            border-left: 4px solid var(--amarillo-lava);
+            border-right: 4px solid var(--naranja-fuego);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: clamp(1rem, 3.5vw, 1.3rem);
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px var(--amarillo-lava);
+            margin: 12px 0;
+        }
+
+        .subtitle-cover {
+            font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+            color: #d1d5db;
+            max-width: 680px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        /* DATOS DEL PROYECTO */
+        .cover-credits {
+            margin: 18px auto 0;
+            padding: 12px 18px;
+            max-width: 520px;
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(255, 202, 40, 0.45);
+            border-radius: 15px;
+            color: #ffffff;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
+        }
+
+        .cover-credits strong {
+            color: var(--amarillo-lava);
+        }
+
+        .btn-main-action {
+            background: linear-gradient(45deg, var(--naranja-fuego), var(--amarillo-lava));
+            color: #000;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            font-weight: 900;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px var(--naranja-fuego);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            margin-top: 15px;
+            touch-action: manipulation;
+        }
+
+        .btn-main-action:hover,
+        .btn-main-action:active {
+            transform: scale(1.04);
+            box-shadow: 0 0 45px var(--amarillo-lava);
+            background: linear-gradient(45deg, var(--amarillo-lava), #ffffff);
+        }
+
+        .menu-title {
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            color: var(--amarillo-lava);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(255, 202, 40, 0.5);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .game-card {
+            background: linear-gradient(
+                145deg,
+                rgba(37, 40, 54, 0.9),
+                rgba(15, 16, 21, 0.9)
+            );
+            border: 2px solid var(--naranja-fuego);
+            border-radius: 20px;
+            padding: 25px 15px;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            touch-action: manipulation;
+        }
+
+        .game-card:hover,
+        .game-card:active {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--amarillo-lava);
+            box-shadow: var(--glow-fuego);
+            background: linear-gradient(
+                145deg,
+                rgba(255, 87, 34, 0.2),
+                rgba(37, 40, 54, 0.9)
+            );
+        }
+
+        .game-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px var(--naranja-fuego));
+        }
+
+        .game-card-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .game-card-desc {
+            font-size: 0.88rem;
+            color: #a0aec0;
+            line-height: 1.35;
+        }
+
+        /* PANELES DE ESTADO RESPONSIVE */
+        .status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,87,34,0.3);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--amarillo-lava);
+        }
+
+        /* TRIVIA */
+        .trivia-question-box {
+            width: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(255,87,34,0.15),
+                rgba(255,202,40,0.08)
+            );
+            border: 2px solid var(--naranja-fuego);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(255,87,34,0.2);
+        }
+
+        .trivia-number {
+            color: var(--amarillo-lava);
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .trivia-question {
+            font-size: clamp(1rem, 3.2vw, 1.35rem);
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .options-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .opt-btn {
+            background: #232733;
+            color: #fff;
+            border: 2px solid #444b5a;
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-align: left;
+            transition: all 0.25s ease;
+            touch-action: manipulation;
+        }
+
+        .opt-btn:hover:not(:disabled) {
+            border-color: var(--amarillo-lava);
+            background: #2f3544;
+            transform: translateY(-2px);
+        }
+
+        .opt-btn.correct {
+            background: rgba(76, 175, 80, 0.25);
+            border-color: var(--verde-exito);
+            color: #b9f6ca;
+        }
+
+        .opt-btn.incorrect {
+            background: rgba(229, 57, 53, 0.25);
+            border-color: var(--rojo-volcan);
+            color: #ffcdd2;
+        }
+
+        .opt-btn:disabled {
+            cursor: default;
+        }
+
+        .trivia-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-action {
+            background: #37474f;
+            color: #fff;
+            border: 2px solid var(--naranja-fuego);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+
+        .btn-action.primary {
+            background: linear-gradient(
+                45deg,
+                var(--naranja-fuego),
+                var(--amarillo-lava)
+            );
+            color: #000;
+        }
+
+        .warning {
+            color: #ff8a80;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* MEMORAMA */
+        .bear-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,202,40,0.3);
+        }
+
+        .bear-info div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bear-info span:first-child {
+            font-size: 0.7rem;
+            color: #a0aec0;
+        }
+
+        .bear-info span:last-child {
+            color: var(--amarillo-lava);
+            font-weight: 900;
+        }
+
+        .bears-grid {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            perspective: 1000px;
+        }
+
+        .bear-card {
+            height: 125px;
+            cursor: pointer;
+            perspective: 1000px;
+            touch-action: manipulation;
+        }
+
+        .bear-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .bear-card.flipped .bear-inner,
+        .bear-card.matched .bear-inner {
+            transform: rotateY(180deg);
+        }
+
+        .bear-front,
+        .bear-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .bear-front {
+            background: linear-gradient(145deg, #795548, #4e342e);
+            border: 3px solid #a1887f;
+            flex-direction: column;
+        }
+
+        .bear-back {
+            background: linear-gradient(145deg, #263238, #102027);
+            border: 2px solid var(--amarillo-lava);
+            transform: rotateY(180deg);
+            font-size: 0.78rem;
+            color: #fff;
+        }
+
+        .bear-eyes-container {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 5px;
+        }
+
+        .bear-eye {
+            width: 20px;
+            height: 20px;
+            background: #000;
+            border-radius: 50%;
+            border: 2px solid #ffccbc;
+            box-shadow: 0 0 8px #ff5722;
+        }
+
+        .bear-snout {
+            width: 38px;
+            height: 25px;
+            background: #d7ccc8;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .bear-snout::after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 7px;
+            background: #3e2723;
+            border-radius: 50%;
+            top: 7px;
+            left: 14px;
+        }
+
+        /* FINAL */
+        .end-screen-title {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            color: var(--amarillo-lava);
+            text-shadow: var(--glow-neon);
+            margin-bottom: 20px;
+        }
+
+        .end-message {
+            font-size: 1.1rem;
+            color: #cfd8dc;
+            margin-bottom: 25px;
+            max-width: 650px;
+        }
+
+        /* MODAL RESPUESTAS */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #161923;
+            border: 2px solid var(--naranja-fuego);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 25px;
+            box-shadow: var(--glow-fuego);
+        }
+
+        .modal-content h3 {
+            color: var(--amarillo-lava);
+            margin-bottom: 15px;
+        }
+
+        .modal-close {
+            float: right;
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+            }
+
+            .app-container {
+                max-height: 100vh;
+                min-height: 100vh;
+                border-radius: 0;
+                border-width: 0 2px;
+            }
+
+            .top-navbar {
+                padding: 8px 10px;
+            }
+
+            .btn-nav {
+                padding: 7px 10px;
+                font-size: 0.72rem;
+            }
+
+            .screen {
+                padding: 12px;
+            }
+
+            .cover-hero {
+                padding: 22px 10px;
+            }
+
+            .institution-logo {
+                width: 90px;
+                height: 90px;
+            }
+
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+
+            .bear-card {
+                height: 110px;
+            }
+
+            .bear-back {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .bear-card {
+                height: 95px;
+            }
+
+            .bear-eye {
+                width: 16px;
+                height: 16px;
+            }
+
+            .bear-snout {
+                width: 30px;
+                height: 20px;
+            }
+
+            .cover-credits {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="app-container">
+
+        <!-- NAVEGACIÓN -->
+        <div class="top-navbar">
+            <button class="btn-nav" onclick="showScreen('cover-screen')">
+                🏠 Inicio
+            </button>
+
+            <button class="btn-nav" onclick="showScreen('menu-screen')">
+                🎮 Juegos
+            </button>
+
+            <button class="btn-nav" onclick="toggleAnswersModal()">
+                📋 Ver Respuestas
+            </button>
+        </div>
+
+        <!-- 1. CARÁTULA -->
+        <div id="cover-screen" class="screen active">
+
+            <div class="cover-hero">
+
+                <!-- LOGO DE LA INSTITUCIÓN -->
+                <img
+                    src="logo.png"
+                    alt="Logo de la institución"
+                    class="institution-logo"
+                >
+
+                <span class="cover-badge">
+                    🚨 Sistema de Prevención Volcánica
+                </span>
+
+                <h1 class="title-glow">
+                    VOLCÁN PURACÉ
+                </h1>
+
+                <div class="quote-banner">
+                    "LA PREVENCIÓN NOS AYUDA A SALVAR LA VIDA"
+                </div>
+
+                <p class="subtitle-cover">
+                    Plataforma Interactiva Educativa: 50 Preguntas de Trivia y 40 Niveles del Memorama de Ositos sobre prevención, rutas de evacuación y saberes Kokonuco.
+                </p>
+
+                <!-- DATOS DEL PROYECTO -->
+                <div class="cover-credits">
+                    <strong>Realizado por:</strong> Kevin Estiven<br>
+                    <strong>Grado:</strong> 10.º A<br>
+                    <strong>Dinamizador:</strong> Álvaro Stid Bolaños<br>
+                    <strong>Septiembre de 2026</strong>
+                </div>
+
+            </div>
+
+            <button
+                class="btn-main-action"
+                onclick="showScreen('menu-screen')"
+            >
+                ¡IR AL MENÚ DE JUEGOS! ➔
+            </button>
+
+        </div>
+
+        <!-- 2. MENÚ -->
+        <div id="menu-screen" class="screen">
+
+            <h2 class="menu-title">
+                Selecciona un Juego
+            </h2>
+
+            <div class="games-grid">
+
+                <div
+                    class="game-card"
+                    onclick="startTriviaGame()"
+                >
+                    <div class="game-icon">
+                        🌋
+                    </div>
+
+                    <div class="game-card-title">
+                        Juego de Preguntas
+                    </div>
+
+                    <div class="game-card-desc">
+                        50 Niveles de preguntas narradas por voz. Ganarás puntos por cada acierto. ¡Sin responder no puedes avanzar!
+                    </div>
+                </div>
+
+                <div
+                    class="game-card"
+                    onclick="startBearsGame()"
+                >
+                    <div class="game-icon">
+                        🐻
+                    </div>
+
+                    <div class="game-card-title">
+                        Memorama de Ositos
+                    </div>
+
+                    <div class="game-card-desc">
+                        40 Niveles con dificultad creciente (aumento de ositos con ojos por nivel). Encuentra las frases de prevención.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3. TRIVIA -->
+        <div id="trivia-screen" class="screen">
+
+            <div class="status-bar">
+
+                <div class="stat">
+                    <span class="stat-label">Pregunta</span>
+                    <span
+                        class="stat-value"
+                        id="t-index"
+                    >
+                        1/50
+                    </span>
+                </div>
+
+                <div class="stat">
+                    <span class="stat-label">Puntos</span>
+                    <span
+                        class="stat-value"
+                        id="t-score"
+                    >
+                        0
+                    </span>
+                </div>
+
+                <div class="stat">
+                    <span class="stat-label">Correctas</span>
+                    <span
+                        class="stat-value"
+                        id="t-good"
+                    >
+                        0
+                    </span>
+                </div>
+
+                <div class="stat">
+                    <span class="stat-label">Incorrectas</span>
+                    <span
+                        class="stat-value"
+                        id="t-bad"
+                    >
+                        0
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="trivia-question-box">
+
+                <div
+                    class="trivia-number"
+                    id="t-number"
+                >
+                    PREGUNTA 1
+                </div>
+
+                <div
+                    class="trivia-question"
+                    id="t-question"
+                >
+                    Cargando pregunta...
+                </div>
+
+            </div>
+
+            <div
+                class="options-container"
+                id="t-options"
+            ></div>
+
+            <div
+                class="warning"
+                id="t-warning"
+            >
+                ⚠️ Selecciona una respuesta antes de continuar.
+            </div>
+
+            <div class="trivia-actions">
+
+                <button
+                    class="btn-action"
+                    onclick="readCurrentQuestion()"
+                >
+                    🔊 Escuchar pregunta
+                </button>
+
+                <button
+                    class="btn-action primary"
+                    onclick="handleTriviaNext()"
+                >
+                    Siguiente ➜
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- 4. MEMORAMA -->
+        <div id="bears-screen" class="screen">
+
+            <div class="bear-info">
+
+                <div>
+                    <span>NIVEL</span>
+                    <span id="b-level">1</span>
+                </div>
+
+                <div>
+                    <span>OSITOS</span>
+                    <span id="b-bears-count">4</span>
+                </div>
+
+                <div>
+                    <span>PAREJAS</span>
+                    <span>
+                        <span id="b-matches">0</span>
+                        /
+                        <span id="b-total-matches">2</span>
+                    </span>
+                </div>
+
+                <div>
+                    <span>PUNTOS</span>
+                    <span id="b-score">0</span>
+                </div>
+
+            </div>
+
+            <div
+                class="bears-grid"
+                id="bears-grid"
+            ></div>
+
+            <div class="trivia-actions">
+
+                <button
+                    class="btn-action"
+                    onclick="restartCurrentGame()"
+                >
+                    🔄 Reiniciar
+                </button>
+
+                <button
+                    class="btn-action primary"
+                    id="b-next-lvl"
+                    onclick="nextBearLevel()"
+                    style="display:none;"
+                >
+                    Siguiente Nivel ➜
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- 5. PANTALLA FINAL -->
+        <div id="end-screen" class="screen">
+
+            <div class="end-screen-title" id="end-title">
+                ¡Excelente trabajo!
+            </div>
+
+            <div
+                class="end-message"
+                id="end-msg"
+            >
+                Has terminado el juego.
+            </div>
+
+            <div class="trivia-actions">
+
+                <button
+                    class="btn-action primary"
+                    onclick="restartCurrentGame()"
+                >
+                    🔄 Jugar de nuevo
+                </button>
+
+                <button
+                    class="btn-action"
+                    onclick="showScreen('menu-screen')"
+                >
+                    🎮 Volver al menú
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL DE RESPUESTAS -->
+    <div
+        class="modal"
+        id="modal-answers"
+    >
+
+        <div class="modal-content">
+
+            <button
+                class="modal-close"
+                onclick="toggleAnswersModal()"
+            >
+                ×
+            </button>
+
+            <h3>
+                📋 Respuestas de la Trivia
+            </h3>
+
+            <div id="answers-list"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        /* =====================================================
+           PARTÍCULAS
+        ===================================================== */
+
+        const particleCanvas =
+            document.getElementById('particle-canvas');
+
+        const pctx =
+            particleCanvas.getContext('2d');
+
+        let particles = [];
+
+        function resizeParticleCanvas() {
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+        }
+
+        resizeParticleCanvas();
+
+        window.addEventListener(
+            'resize',
+            resizeParticleCanvas
+        );
+
+        function createParticles() {
+
+            particles = [];
+
+            const amount =
+                window.innerWidth <= 600 ? 35 : 65;
+
+            for (let i = 0; i < amount; i++) {
+
+                particles.push({
+                    x: Math.random() * particleCanvas.width,
+                    y: Math.random() * particleCanvas.height,
+                    r: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.7 + 0.2,
+                    opacity: Math.random() * 0.6 + 0.2
+                });
+
+            }
+        }
+
+        createParticles();
+
+        function animateParticles() {
+
+            pctx.clearRect(
+                0,
+                0,
+                particleCanvas.width,
+                particleCanvas.height
+            );
+
+            particles.forEach(p => {
+
+                p.y -= p.speed;
+
+                if (p.y < -5) {
+                    p.y = particleCanvas.height + 5;
+                    p.x = Math.random() * particleCanvas.width;
+                }
+
+                pctx.beginPath();
+
+                pctx.arc(
+                    p.x,
+                    p.y,
+                    p.r,
+                    0,
+                    Math.PI * 2
+                );
+
+                pctx.fillStyle =
+                    `rgba(255, ${100 + Math.random() * 120}, 40, ${p.opacity})`;
+
+                pctx.fill();
+
+            });
+
+            requestAnimationFrame(
+                animateParticles
+            );
+        }
+
+        animateParticles();
+
+
+        /* =====================================================
+           NAVEGACIÓN
+        ===================================================== */
+
+        function showScreen(screenId) {
+
+            document
+                .querySelectorAll('.screen')
+                .forEach(screen => {
+                    screen.classList.remove('active');
+                });
+
+            const screen =
+                document.getElementById(screenId);
+
+            if (screen) {
+                screen.classList.add('active');
+            }
+
+            const container =
+                document.querySelector('.app-container');
+
+            if (container) {
+                container.scrollTop = 0;
+            }
+        }
+
+
+        /* =====================================================
+           VOZ
+        ===================================================== */
+
+        function speakText(text) {
+
+            if (!('speechSynthesis' in window)) {
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+
+            const utterance =
+                new SpeechSynthesisUtterance(text);
+
+            utterance.lang = 'es-CO';
+            utterance.rate = 0.92;
+            utterance.pitch = 1;
+
+            window.speechSynthesis.speak(
+                utterance
+            );
+        }
+
+
+        /* =====================================================
+           DATOS DE TRIVIA
+        ===================================================== */
+
+        const triviaData = [
+
+            {
+                q: "¿Qué significa una Alerta Naranja en un volcán?",
+                opts: [
+                    "Que el volcán está completamente apagado.",
+                    "Que hay cambios importantes y debemos prepararnos.",
+                    "Que ya no existe ningún riesgo.",
+                    "Que se debe entrar a la zona volcánica."
+                ],
+                correct: 1,
+                exp: "La Alerta Naranja indica cambios importantes en la actividad volcánica y la necesidad de prepararse."
+            },
+
+            {
+                q: "¿Qué elemento puede proteger las vías respiratorias durante una caída de ceniza?",
+                opts: [
+                    "Una gorra.",
+                    "Un tapabocas N95 o un paño húmedo.",
+                    "Una bufanda seca.",
+                    "Un sombrero."
+                ],
+                correct: 1,
+                exp: "Un tapabocas adecuado o un paño húmedo puede ayudar a reducir la inhalación de ceniza."
+            },
+
+            {
+                q: "¿Qué debemos hacer si las autoridades ordenan evacuar?",
+                opts: [
+                    "Esperar a que todos salgan primero.",
+                    "Ignorar la orden.",
+                    "Evacuar siguiendo las rutas establecidas.",
+                    "Acercarnos al volcán."
+                ],
+                correct: 2,
+                exp: "Las instrucciones de evacuación deben seguirse de manera rápida y ordenada."
+            },
+
+            {
+                q: "¿Qué debe contener una mochila de emergencia?",
+                opts: [
+                    "Solo juguetes.",
+                    "Agua, alimentos, documentos y elementos básicos.",
+                    "Solo ropa.",
+                    "Objetos pesados."
+                ],
+                correct: 1,
+                exp: "La mochila de emergencia debe contener elementos esenciales para enfrentar una situación de emergencia."
+            },
+
+            {
+                q: "¿Por qué es importante conocer las rutas de evacuación?",
+                opts: [
+                    "Para caminar más lejos.",
+                    "Para saber hacia dónde dirigirse durante una emergencia.",
+                    "Para acercarse al volcán.",
+                    "Para evitar las señales."
+                ],
+                correct: 1,
+                exp: "Conocer las rutas permite evacuar de manera organizada y segura."
+            },
+
+            {
+                q: "¿Qué institución emite información oficial sobre la actividad volcánica en Colombia?",
+                opts: [
+                    "El Servicio Geológico Colombiano.",
+                    "Un grupo de amigos.",
+                    "Una red social.",
+                    "Un videojuego."
+                ],
+                correct: 0,
+                exp: "El Servicio Geológico Colombiano realiza el monitoreo volcánico y publica información oficial."
+            },
+
+            {
+                q: "¿Qué debemos hacer con los recipientes de agua durante una caída de ceniza?",
+                opts: [
+                    "Dejarlos destapados.",
+                    "Mantenerlos cubiertos.",
+                    "Vaciar toda el agua.",
+                    "Ponerlos afuera."
+                ],
+                correct: 1,
+                exp: "Cubrir los recipientes ayuda a evitar la contaminación del agua con ceniza."
+            },
+
+            {
+                q: "¿Por qué debemos mantener la calma durante una emergencia?",
+                opts: [
+                    "Porque permite actuar de forma ordenada.",
+                    "Porque hace que desaparezca el volcán.",
+                    "Porque no ocurre nada.",
+                    "Porque evita las alertas."
+                ],
+                correct: 0,
+                exp: "Mantener la calma ayuda a evitar accidentes y permite tomar mejores decisiones."
+            },
+
+            {
+                q: "¿Qué debemos hacer con nuestras mascotas y animales ante una evacuación?",
+                opts: [
+                    "Dejarlos solos.",
+                    "Protegerlos y llevarlos según el plan familiar.",
+                    "Soltarlos en la carretera.",
+                    "Acercarlos al volcán."
+                ],
+                correct: 1,
+                exp: "Los animales también deben ser incluidos en los planes familiares de emergencia."
+            },
+
+            {
+                q: "¿Qué puede provocar la ceniza volcánica?",
+                opts: [
+                    "Irritación en ojos y vías respiratorias.",
+                    "Agua potable automáticamente.",
+                    "Desaparición de todos los riesgos.",
+                    "Mayor visibilidad."
+                ],
+                correct: 0,
+                exp: "La ceniza puede irritar los ojos y las vías respiratorias."
+            },
+
+            {
+                q: "¿Qué debemos hacer si la ceniza entra en los ojos?",
+                opts: [
+                    "Frotarlos fuertemente.",
+                    "Enjuagarlos con abundante agua limpia.",
+                    "Cerrar los ojos durante varios días.",
+                    "Ponerles tierra."
+                ],
+                correct: 1,
+                exp: "Se recomienda enjuagar los ojos con agua limpia y evitar frotarlos."
+            },
+
+            {
+                q: "¿Por qué debemos alejarnos de los cauces de los ríos durante una emergencia volcánica?",
+                opts: [
+                    "Porque pueden presentarse flujos de lodo o lahares.",
+                    "Porque el agua desaparece.",
+                    "Porque allí no hay señal.",
+                    "Porque son rutas turísticas."
+                ],
+                correct: 0,
+                exp: "Los cauces pueden convertirse en zonas de paso de flujos de lodo."
+            },
+
+            {
+                q: "¿Qué objeto puede ayudarnos a tener iluminación durante una emergencia?",
+                opts: [
+                    "Una linterna.",
+                    "Una piedra.",
+                    "Una botella vacía.",
+                    "Una fotografía."
+                ],
+                correct: 0,
+                exp: "Una linterna permite iluminar espacios durante cortes de energía o evacuaciones."
+            },
+
+            {
+                q: "¿Qué debemos hacer con las puertas y ventanas durante una caída fuerte de ceniza?",
+                opts: [
+                    "Abrirlas todas.",
+                    "Mantenerlas cerradas.",
+                    "Quitarlas.",
+                    "Dejarlas abiertas toda la noche."
+                ],
+                correct: 1,
+                exp: "Mantener cerradas puertas y ventanas ayuda a reducir la entrada de ceniza."
+            },
+
+            {
+                q: "¿Qué significa estar preparado ante una emergencia?",
+                opts: [
+                    "Conocer riesgos, rutas y medidas de protección.",
+                    "No prestar atención.",
+                    "Esperar sin hacer nada.",
+                    "Acercarse a observar."
+                ],
+                correct: 0,
+                exp: "La preparación incluye conocer los riesgos, tener suministros y saber cómo actuar."
+            },
+
+            {
+                q: "¿Qué debemos hacer con la información que recibimos en redes sociales?",
+                opts: [
+                    "Compartirla inmediatamente.",
+                    "Verificarla en fuentes oficiales.",
+                    "Creer todo.",
+                    "Ignorar toda información."
+                ],
+                correct: 1,
+                exp: "Es importante verificar la información antes de compartirla."
+            },
+
+            {
+                q: "¿Por qué es importante realizar simulacros?",
+                opts: [
+                    "Porque ayudan a practicar cómo actuar.",
+                    "Porque detienen el volcán.",
+                    "Porque eliminan la ceniza.",
+                    "Porque cambian la alerta."
+                ],
+                correct: 0,
+                exp: "Los simulacros permiten practicar los procedimientos de emergencia."
+            },
+
+            {
+                q: "¿Qué debemos hacer si escuchamos una instrucción oficial de evacuación?",
+                opts: [
+                    "Seguirla de manera ordenada.",
+                    "Esperar a ver qué hacen los demás.",
+                    "Ir hacia el volcán.",
+                    "Ignorarla."
+                ],
+                correct: 0,
+                exp: "Las instrucciones oficiales deben seguirse de manera rápida y ordenada."
+            },
+
+            {
+                q: "¿Qué elemento es importante llevar en caso de evacuación?",
+                opts: [
+                    "Documentos personales.",
+                    "Objetos innecesarios.",
+                    "Piedras.",
+                    "Decoraciones."
+                ],
+                correct: 0,
+                exp: "Los documentos personales son importantes durante una evacuación."
+            },
+
+            {
+                q: "¿Qué debemos recordar siempre frente a un volcán activo?",
+                opts: [
+                    "Que debemos conocerlo y respetar las recomendaciones.",
+                    "Que nunca puede cambiar.",
+                    "Que debemos acercarnos.",
+                    "Que no existe ningún riesgo."
+                ],
+                correct: 0,
+                exp: "Conocer el comportamiento volcánico y seguir las recomendaciones ayuda a proteger a la comunidad."
+            },
+
+            {
+                q: "¿Qué es un volcán?",
+                opts: [
+                    "Una montaña o estructura geológica por donde pueden salir materiales del interior de la Tierra.",
+                    "Un río.",
+                    "Una nube.",
+                    "Una carretera."
+                ],
+                correct: 0,
+                exp: "Un volcán es una estructura geológica asociada a la salida de magma y otros materiales."
+            },
+
+            {
+                q: "¿Por qué debemos respetar las zonas restringidas?",
+                opts: [
+                    "Porque ayudan a reducir la exposición al peligro.",
+                    "Porque son lugares turísticos.",
+                    "Porque hacen que el volcán se apague.",
+                    "Porque no tienen ninguna importancia."
+                ],
+                correct: 0,
+                exp: "Las restricciones buscan proteger a las personas de zonas potencialmente peligrosas."
+            },
+
+            {
+                q: "¿Qué debemos hacer si cae ceniza y estamos afuera?",
+                opts: [
+                    "Buscar un lugar protegido.",
+                    "Quedarnos mirando el cielo.",
+                    "Acercarnos al volcán.",
+                    "Correr sin dirección."
+                ],
+                correct: 0,
+                exp: "Buscar refugio ayuda a disminuir la exposición a la ceniza."
+            },
+
+            {
+                q: "¿Qué puede afectar una acumulación importante de ceniza?",
+                opts: [
+                    "Techos, cultivos, animales y vías respiratorias.",
+                    "Solo los teléfonos.",
+                    "Solo los árboles.",
+                    "Nada."
+                ],
+                correct: 0,
+                exp: "La ceniza puede generar distintos impactos dependiendo de su cantidad y condiciones."
+            },
+
+            {
+                q: "¿Qué debe hacer una familia antes de una emergencia?",
+                opts: [
+                    "Preparar un plan familiar.",
+                    "No hablar del tema.",
+                    "Esperar una emergencia.",
+                    "Salir sin avisar."
+                ],
+                correct: 0,
+                exp: "Un plan familiar ayuda a saber cómo actuar y dónde reunirse."
+            },
+
+            {
+                q: "¿Qué debe incluir un plan familiar de emergencia?",
+                opts: [
+                    "Rutas, punto de encuentro y contactos.",
+                    "Solo comida.",
+                    "Solo ropa.",
+                    "Solo dinero."
+                ],
+                correct: 0,
+                exp: "Un buen plan debe establecer rutas, puntos de encuentro y formas de comunicación."
+            },
+
+            {
+                q: "¿Qué debemos hacer si se interrumpe la energía eléctrica?",
+                opts: [
+                    "Utilizar una linterna y mantenernos informados.",
+                    "Encender fuego dentro de la casa.",
+                    "Salir sin dirección.",
+                    "Acercarnos al volcán."
+                ],
+                correct: 0,
+                exp: "Una linterna y fuentes confiables de información son útiles durante cortes de energía."
+            },
+
+            {
+                q: "¿Por qué debemos proteger el agua?",
+                opts: [
+                    "Porque puede contaminarse con ceniza.",
+                    "Porque desaparece inmediatamente.",
+                    "Porque cambia de color siempre.",
+                    "Porque no es necesaria."
+                ],
+                correct: 0,
+                exp: "La ceniza puede contaminar fuentes y recipientes de agua."
+            },
+
+            {
+                q: "¿Qué debemos hacer con la ceniza acumulada en los techos?",
+                opts: [
+                    "Seguir las recomendaciones de las autoridades para retirarla de forma segura.",
+                    "Subir sin protección.",
+                    "Ignorar cualquier acumulación.",
+                    "Quemarla."
+                ],
+                correct: 0,
+                exp: "La ceniza puede pesar y generar riesgos; su manejo debe hacerse con seguridad."
+            },
+
+            {
+                q: "¿Por qué es importante conocer nuestro territorio?",
+                opts: [
+                    "Porque permite reconocer riesgos y recursos.",
+                    "Porque elimina todos los riesgos.",
+                    "Porque evita cualquier actividad volcánica.",
+                    "Porque no tiene relación con la prevención."
+                ],
+                correct: 0,
+                exp: "Conocer el territorio ayuda a identificar riesgos, rutas y lugares seguros."
+            },
+
+            {
+                q: "¿Qué actitud debemos tener ante la actividad volcánica?",
+                opts: [
+                    "Responsabilidad y prevención.",
+                    "Pánico permanente.",
+                    "Indiferencia.",
+                    "Curiosidad peligrosa."
+                ],
+                correct: 0,
+                exp: "La prevención permite actuar con responsabilidad sin generar pánico."
+            },
+
+            {
+                q: "¿Qué debemos hacer antes de evacuar?",
+                opts: [
+                    "Seguir las instrucciones oficiales y tomar los elementos necesarios.",
+                    "Regresar al volcán.",
+                    "Esperar indefinidamente.",
+                    "Abrir todas las ventanas."
+                ],
+                correct: 0,
+                exp: "Antes de evacuar debemos seguir instrucciones oficiales y llevar lo necesario."
+            },
+
+            {
+                q: "¿Por qué debemos tener documentos protegidos?",
+                opts: [
+                    "Porque pueden ser necesarios durante una emergencia.",
+                    "Porque hacen que el volcán se calme.",
+                    "Porque eliminan la ceniza.",
+                    "Porque sustituyen el agua."
+                ],
+                correct: 0,
+                exp: "Los documentos personales pueden ser necesarios para diferentes trámites posteriores."
+            },
+
+            {
+                q: "¿Qué es la prevención?",
+                opts: [
+                    "Conjunto de acciones para reducir riesgos y proteger vidas.",
+                    "Esperar a que ocurra un desastre.",
+                    "Ignorar las señales.",
+                    "Acercarse al peligro."
+                ],
+                correct: 0,
+                exp: "La prevención busca reducir los riesgos antes de que ocurra una emergencia."
+            },
+
+            {
+                q: "¿Qué es una ruta de evacuación?",
+                opts: [
+                    "Un camino previamente identificado para salir de una zona de riesgo.",
+                    "Un camino hacia el volcán.",
+                    "Una ruta turística.",
+                    "Una carretera sin señalización."
+                ],
+                correct: 0,
+                exp: "Las rutas de evacuación permiten desplazarse hacia lugares seguros."
+            },
+
+            {
+                q: "¿Por qué debemos escuchar a las autoridades?",
+                opts: [
+                    "Porque brindan instrucciones basadas en la situación monitoreada.",
+                    "Porque pueden detener el volcán.",
+                    "Porque conocen el futuro.",
+                    "Porque no existe otra información."
+                ],
+                correct: 0,
+                exp: "Las autoridades entregan instrucciones para la protección de la población."
+            },
+
+            {
+                q: "¿Qué podemos hacer para ayudar a nuestra comunidad?",
+                opts: [
+                    "Informarnos, prepararnos y compartir información verificada.",
+                    "Compartir rumores.",
+                    "Ignorar las alertas.",
+                    "Acercarnos a observar."
+                ],
+                correct: 0,
+                exp: "La preparación y la información verificada ayudan a fortalecer la prevención comunitaria."
+            },
+
+            {
+                q: "¿Qué debemos hacer con los niños durante una emergencia?",
+                opts: [
+                    "Mantenerlos acompañados y explicarles qué hacer.",
+                    "Dejarlos solos.",
+                    "Enviarlos a buscar información.",
+                    "Acercarlos a la zona de riesgo."
+                ],
+                correct: 0,
+                exp: "Los niños deben permanecer acompañados y recibir instrucciones claras."
+            },
+
+            {
+                q: "¿Por qué es importante proteger a las personas mayores?",
+                opts: [
+                    "Porque pueden necesitar apoyo especial durante una evacuación.",
+                    "Porque no pueden salir de casa.",
+                    "Porque no necesitan información.",
+                    "Porque deben quedarse solos."
+                ],
+                correct: 0,
+                exp: "Algunas personas pueden requerir apoyo adicional durante una emergencia."
+            },
+
+            {
+                q: "¿Qué debemos hacer con los alimentos?",
+                opts: [
+                    "Mantenerlos protegidos de la ceniza.",
+                    "Dejarlos descubiertos.",
+                    "Ponerlos afuera.",
+                    "Lavarlos con ceniza."
+                ],
+                correct: 0,
+                exp: "Los alimentos deben protegerse para evitar contaminación."
+            },
+
+            {
+                q: "¿Por qué es importante tener agua almacenada?",
+                opts: [
+                    "Porque puede haber interrupciones o contaminación.",
+                    "Porque elimina los riesgos.",
+                    "Porque detiene la ceniza.",
+                    "Porque cambia la alerta."
+                ],
+                correct: 0,
+                exp: "Tener agua disponible es una medida básica de preparación."
+            },
+
+            {
+                q: "¿Qué debemos hacer si no entendemos una alerta?",
+                opts: [
+                    "Consultar una fuente oficial.",
+                    "Inventar una explicación.",
+                    "Compartir un rumor.",
+                    "Ignorarla."
+                ],
+                correct: 0,
+                exp: "Las dudas deben resolverse mediante fuentes oficiales."
+            },
+
+            {
+                q: "¿Qué puede ayudar a mantenernos informados?",
+                opts: [
+                    "Radio, fuentes oficiales y sistemas de comunicación.",
+                    "Rumores.",
+                    "Mensajes sin verificar.",
+                    "Información anónima."
+                ],
+                correct: 0,
+                exp: "Las fuentes oficiales y medios confiables ayudan a mantenerse informado."
+            },
+
+            {
+                q: "¿Por qué no debemos acercarnos a observar una erupción o emisión?",
+                opts: [
+                    "Porque podemos exponernos a peligros.",
+                    "Porque no se ve bien.",
+                    "Porque está prohibido tomar fotografías.",
+                    "Porque no existe ningún riesgo."
+                ],
+                correct: 0,
+                exp: "Acercarse puede aumentar la exposición a ceniza, gases y otros peligros."
+            },
+
+            {
+                q: "¿Qué debemos hacer si encontramos una zona señalizada como peligrosa?",
+                opts: [
+                    "Respetar la señal y alejarnos.",
+                    "Entrar rápidamente.",
+                    "Quitar la señal.",
+                    "Esperar allí."
+                ],
+                correct: 0,
+                exp: "Las señales indican condiciones que deben ser respetadas para reducir riesgos."
+            },
+
+            {
+                q: "¿Por qué debemos participar en actividades comunitarias de prevención?",
+                opts: [
+                    "Porque fortalecen la preparación de toda la comunidad.",
+                    "Porque eliminan el volcán.",
+                    "Porque cambian la alerta.",
+                    "Porque sustituyen las autoridades."
+                ],
+                correct: 0,
+                exp: "La prevención comunitaria permite que más personas sepan cómo actuar."
+            },
+
+            {
+                q: "¿Qué significa actuar con responsabilidad?",
+                opts: [
+                    "Seguir recomendaciones y cuidar nuestra vida y la de los demás.",
+                    "Ignorar las señales.",
+                    "Difundir rumores.",
+                    "Actuar sin pensar."
+                ],
+                correct: 0,
+                exp: "La responsabilidad implica tomar medidas para protegernos y proteger a otros."
+            },
+
+            {
+                q: "¿Qué debemos recordar cuando una emergencia termina?",
+                opts: [
+                    "Regresar solamente cuando las autoridades lo indiquen.",
+                    "Regresar inmediatamente.",
+                    "Acercarnos al volcán.",
+                    "Ignorar las instrucciones."
+                ],
+                correct: 0,
+                exp: "El regreso debe hacerse únicamente cuando las autoridades indiquen que es seguro."
+            },
+
+            {
+                q: "¿Cuál es una de las mejores herramientas de prevención?",
+                opts: [
+                    "La información y preparación.",
+                    "El miedo.",
+                    "Los rumores.",
+                    "La improvisación."
+                ],
+                correct: 0,
+                exp: "La información y la preparación ayudan a tomar decisiones adecuadas."
+            },
+
+            {
+                q: "¿Qué debemos hacer para cuidar nuestro territorio?",
+                opts: [
+                    "Conocerlo, respetarlo y prepararnos ante sus riesgos.",
+                    "Ignorarlo.",
+                    "Contaminarlo.",
+                    "Acercarnos a las zonas restringidas."
+                ],
+                correct: 0,
+                exp: "Conocer y respetar el territorio fortalece la convivencia y la prevención."
+            }
+
+        ];
+
+
+        /* =====================================================
+           VARIABLES DE TRIVIA
+        ===================================================== */
+
+        let triviaIndex = 0;
+        let triviaScore = 0;
+        let triviaGood = 0;
+        let triviaBad = 0;
+        let selectedOption = null;
+        let activeGameType = null;
+
+
+        /* =====================================================
+           INICIAR TRIVIA
+        ===================================================== */
+
+        function startTriviaGame() {
+
+            activeGameType = 'trivia';
+
+            triviaIndex = 0;
+            triviaScore = 0;
+            triviaGood = 0;
+            triviaBad = 0;
+            selectedOption = null;
+
+            showScreen('trivia-screen');
+
+            updateTriviaStats();
+            loadTriviaQuestion();
+        }
+
+
+        /* =====================================================
+           ACTUALIZAR ESTADÍSTICAS
+        ===================================================== */
+
+        function updateTriviaStats() {
+
+            document.getElementById('t-index').innerText =
+                `${Math.min(triviaIndex + 1, triviaData.length)}/${triviaData.length}`;
+
+            document.getElementById('t-score').innerText =
+                triviaScore;
+
+            document.getElementById('t-good').innerText =
+                triviaGood;
+
+            document.getElementById('t-bad').innerText =
+                triviaBad;
+        }
+
+
+        /* =====================================================
+           CARGAR PREGUNTA
+        ===================================================== */
+
+        function loadTriviaQuestion() {
+
+            selectedOption = null;
+
+            const data =
+                triviaData[triviaIndex];
+
+            document.getElementById('t-number').innerText =
+                `PREGUNTA ${triviaIndex + 1}`;
+
+            document.getElementById('t-question').innerText =
+                data.q;
+
+            document.getElementById('t-warning').style.display =
+                'none';
+
+            const optionsContainer =
+                document.getElementById('t-options');
+
+            optionsContainer.innerHTML = '';
+
+            const letters =
+                ['A', 'B', 'C', 'D'];
+
+            data.opts.forEach((optText, i) => {
+
+                const btn =
+                    document.createElement('button');
+
+                btn.className = 'opt-btn';
+
+                btn.innerHTML =
+                    `<span style="font-weight:bold; color:var(--amarillo-lava);">${letters[i]}</span> ${optText}`;
+
+                btn.onclick = () =>
+                    selectOption(i, btn);
+
+                optionsContainer.appendChild(btn);
+
+            });
+
+            updateTriviaStats();
+
+        }
+
+
+        /* =====================================================
+           SELECCIONAR RESPUESTA
+        ===================================================== */
+
+        function selectOption(index, btnElement) {
+
+            if (selectedOption !== null) {
+                return;
+            }
+
+            selectedOption = index;
+
+            const data =
+                triviaData[triviaIndex];
+
+            const allBtns =
+                document.querySelectorAll(
+                    '#t-options .opt-btn'
+                );
+
+            allBtns.forEach(b =>
+                b.setAttribute('disabled', 'true')
+            );
+
+            if (index === data.correct) {
+
+                btnElement.classList.add('correct');
+
+                triviaScore += 20;
+                triviaGood++;
+
+            } else {
+
+                btnElement.classList.add('incorrect');
+
+                allBtns[data.correct]
+                    .classList.add('correct');
+
+                triviaBad++;
+            }
+
+            updateTriviaStats();
+        }
+
+
+        /* =====================================================
+           SIGUIENTE PREGUNTA
+        ===================================================== */
+
+        function handleTriviaNext() {
+
+            if (selectedOption === null) {
+
+                const warning =
+                    document.getElementById('t-warning');
+
+                warning.style.display = 'block';
+
+                return;
+            }
+
+            triviaIndex++;
+
+            if (triviaIndex < triviaData.length) {
+
+                loadTriviaQuestion();
+
+            } else {
+
+                showEndScreen(
+                    "¡Trivia Volcánica Completada!",
+                    `Has completado las 50 preguntas con un puntaje final de ${triviaScore} puntos (${triviaGood} acertadas / ${triviaBad} erradas).`
+                );
+
+            }
+        }
+
+
+        /* =====================================================
+           LEER PREGUNTA
+        ===================================================== */
+
+        function readCurrentQuestion() {
+
+            const data =
+                triviaData[triviaIndex];
+
+            speakText(
+                data.q +
+                ". Opciones: " +
+                data.opts.join(". ")
+            );
+        }
+
+
+        /* =====================================================
+           MEMORAMA DE OSITOS
+        ===================================================== */
+
+        const baseConcepts = [
+
+            {
+                a: "La Alerta Naranja en el Puracé",
+                b: "indica prepararse para evacuar a tiempo."
+            },
+
+            {
+                a: "El tapabocas N95 o paño húmedo",
+                b: "protege las vías respiratorias de la ceniza."
+            },
+
+            {
+                a: "Jate Puracé para la comunidad",
+                b: "es el espíritu sagrado del volcán vivo."
+            },
+
+            {
+                a: "La mochila de vida y emergencia",
+                b: "debe incluir agua, alimento y documentos."
+            },
+
+            {
+                a: "Alejarse de los cauces de los ríos",
+                b: "evita el peligro de flujos de lodo o lahares."
+            },
+
+            {
+                a: "Mantener la calma en la familia",
+                b: "evita accidentes por estampidas y pánico."
+            },
+
+            {
+                a: "El Servicio Geológico Colombiano",
+                b: "emite reportes e información oficial."
+            },
+
+            {
+                a: "Los recipientes de agua dulce",
+                b: "deben permanecer cubiertos contra cenizas."
+            },
+
+            {
+                a: "Revisar los botiquines comunitarios",
+                b: "garantiza insumos para emergencias."
+            },
+
+            {
+                a: "Participar con fe en simulacros",
+                b: "enseña a actuar con rapidez y orden."
+            },
+
+            {
+                a: "Proteger los ojos con antiparras",
+                b: "evita raspaduras por vidrio volcánico."
+            },
+
+            {
+                a: "Escuchar la radio a baterías",
+                b: "mantiene informados si cae la telefonía."
+            },
+
+            {
+                a: "Proteger el ganado y mascotas",
+                b: "resguarda la vida y alimento en la finca."
+            },
+
+            {
+                a: "Identificar las zonas de refugio",
+                b: "brinda abrigo seguro a toda la comunidad."
+            },
+
+            {
+                a: "Llevar linterna de manivela o led",
+                b: "ilumina caminos oscuros sin usar fuego."
+            },
+
+            {
+                a: "Sellar puertas y ductos de aire",
+                b: "impide que la ceniza entre al hogar."
+            },
+
+            {
+                a: "Lavar la piel con abundante agua",
+                b: "remueve los minerales abrasivos del volcán."
+            },
+
+            {
+                a: "Barrer la ceniza en seco del techo",
+                b: "evita que la estructura colapse por peso."
+            },
+
+            {
+                a: "Definir un punto de encuentro familiar",
+                b: "asegura que todos se reúnan a salvo."
+            },
+
+            {
+                a: "Respetar la naturaleza y el territorio",
+                b: "fortalece los saberes del pueblo Kokonuco."
+            }
+
+        ];
+
+
+        let bearLevel = 1;
+        let bearScore = 0;
+        let bearMatches = 0;
+        let bearTotalMatches = 2;
+        let flippedBears = [];
+        let canFlipBear = true;
+
+
+        /* =====================================================
+           INICIAR MEMORAMA
+        ===================================================== */
+
+        function startBearsGame() {
+
+            activeGameType = 'bears';
+
+            bearLevel = 1;
+            bearScore = 0;
+
+            showScreen('bears-screen');
+
+            loadBearLevel();
+        }
+
+
+        /* =====================================================
+           CARGAR NIVEL MEMORAMA
+        ===================================================== */
+
+        function loadBearLevel() {
+
+            flippedBears = [];
+            canFlipBear = true;
+            bearMatches = 0;
+
+            document.getElementById(
+                'b-next-lvl'
+            ).style.display = 'none';
+
+            bearTotalMatches =
+                Math.min(
+                    2 + Math.floor((bearLevel - 1) / 2),
+                    8
+                );
+
+            const totalBears =
+                bearTotalMatches * 2;
+
+            document.getElementById(
+                'b-level'
+            ).innerText = bearLevel;
+
+            document.getElementById(
+                'b-bears-count'
+            ).innerText = totalBears;
+
+            document.getElementById(
+                'b-score'
+            ).innerText = bearScore;
+
+            document.getElementById(
+                'b-matches'
+            ).innerText = bearMatches;
+
+            document.getElementById(
+                'b-total-matches'
+            ).innerText = bearTotalMatches;
+
+
+            let selectedPairs = [];
+
+            for (
+                let i = 0;
+                i < bearTotalMatches;
+                i++
+            ) {
+
+                let index =
+                    (bearLevel - 1 + i * 3) %
+                    baseConcepts.length;
+
+                let pairData =
+                    baseConcepts[index];
+
+                let uniqueId =
+                    `lvl${bearLevel}_p${i}`;
+
+                selectedPairs.push({
+                    id: uniqueId,
+                    text: pairData.a
+                });
+
+                selectedPairs.push({
+                    id: uniqueId,
+                    text: pairData.b
+                });
+
+            }
+
+
+            selectedPairs.sort(
+                () => Math.random() - 0.5
+            );
+
+
+            const grid =
+                document.getElementById(
+                    'bears-grid'
+                );
+
+            grid.innerHTML = '';
+
+
+            const isSmallScreen =
+                window.innerWidth <= 600;
+
+            if (isSmallScreen) {
+
+                grid.style.gridTemplateColumns =
+                    'repeat(3, 1fr)';
+
+            } else {
+
+                grid.style.gridTemplateColumns =
+                    totalBears <= 6
+                        ? 'repeat(3, 1fr)'
+                        : 'repeat(4, 1fr)';
+            }
+
+
+            selectedPairs.forEach(item => {
+
+                const card =
+                    document.createElement('div');
+
+                card.className = 'bear-card';
+
+                card.dataset.id =
+                    item.id;
+
+                card.dataset.text =
+                    item.text;
+
+
+                card.innerHTML = `
+
+                    <div class="bear-inner">
+
+                        <div class="bear-front">
+
+                            <div class="bear-eyes-container">
+
+                                <div class="bear-eye"></div>
+                                <div class="bear-eye"></div>
+
+                            </div>
+
+                            <div class="bear-snout"></div>
+
+                            <span style="font-size:0.7rem; font-weight:bold; margin-top:2px;">
+                                OSITO
+                            </span>
+
+                        </div>
+
+                        <div class="bear-back">
+                            <span>${item.text}</span>
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                card.onclick =
+                    () => flipBear(card);
+
+                grid.appendChild(card);
+
+            });
+
+        }
+
+
+        /* =====================================================
+           VOLTEAR OSITO
+        ===================================================== */
+
+        function flipBear(card) {
+
+            if (
+                !canFlipBear ||
+                card.classList.contains('flipped') ||
+                card.classList.contains('matched')
+            ) {
+                return;
+            }
+
+            card.classList.add('flipped');
+
+            flippedBears.push(card);
+
+
+            if (flippedBears.length === 2) {
+
+                canFlipBear = false;
+
+                const [c1, c2] =
+                    flippedBears;
+
+
+                if (
+                    c1.dataset.id ===
+                    c2.dataset.id
+                ) {
+
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
+
+                    bearMatches++;
+                    bearScore += 30;
+
+                    document.getElementById(
+                        'b-matches'
+                    ).innerText = bearMatches;
+
+                    document.getElementById(
+                        'b-score'
+                    ).innerText = bearScore;
+
+                    flippedBears = [];
+                    canFlipBear = true;
+
+
+                    if (
+                        bearMatches ===
+                        bearTotalMatches
+                    ) {
+
+                        if (bearLevel < 40) {
+
+                            document.getElementById(
+                                'b-next-lvl'
+                            ).style.display =
+                                'inline-block';
+
+                        } else {
+
+                            showEndScreen(
+                                "¡Maestro del Memorama!",
+                                `Has superado los 40 Niveles del Memorama de Ositos con ${bearScore} puntos.`
+                            );
+
+                        }
+                    }
+
+                } else {
+
+                    setTimeout(() => {
+
+                        c1.classList.remove(
+                            'flipped'
+                        );
+
+                        c2.classList.remove(
+                            'flipped'
+                        );
+
+                        flippedBears = [];
+
+                        canFlipBear = true;
+
+                    }, 1200);
+
+                }
+            }
+        }
+
+
+        /* =====================================================
+           SIGUIENTE NIVEL
+        ===================================================== */
+
+        function nextBearLevel() {
+
+            bearLevel++;
+
+            loadBearLevel();
+        }
+
+
+        /* =====================================================
+           REINICIAR JUEGO
+        ===================================================== */
+
+        function restartCurrentGame() {
+
+            if (activeGameType === 'trivia') {
+
+                startTriviaGame();
+
+            } else {
+
+                startBearsGame();
+
+            }
+        }
+
+
+        /* =====================================================
+           PANTALLA FINAL
+        ===================================================== */
+
+        function showEndScreen(title, msg) {
+
+            document.getElementById(
+                'end-title'
+            ).innerText = title;
+
+            document.getElementById(
+                'end-msg'
+            ).innerText = msg;
+
+            showScreen('end-screen');
+        }
+
+
+        /* =====================================================
+           MODAL DE RESPUESTAS
+        ===================================================== */
+
+        function toggleAnswersModal() {
+
+            const modal =
+                document.getElementById(
+                    'modal-answers'
+                );
+
+            modal.classList.toggle('active');
+
+
+            if (
+                modal.classList.contains('active')
+            ) {
+
+                const list =
+                    document.getElementById(
+                        'answers-list'
+                    );
+
+                list.innerHTML =
+                    triviaData.map((d) => `
+
+                        <div
+                            style="
+                                margin-bottom:10px;
+                                background:rgba(255,255,255,0.05);
+                                padding:10px;
+                                border-radius:10px;
+                                border-left:3px solid var(--naranja-fuego);
+                            "
+                        >
+
+                            <strong
+                                style="
+                                    color:var(--amarillo-lava)
+                                "
+                            >
+                                ${d.q}
+                            </strong>
+
+                            <br>
+
+                            <span
+                                style="
+                                    color:#81c784
+                                "
+                            >
+                                ✓ Respuesta Correcta:
+                                ${d.opts[d.correct]}
+                            </span>
+
+                            <br>
+
+                            <small
+                                style="
+                                    color:#a0aec0
+                                "
+                            >
+                                💡 ${d.exp}
+                            </small>
+
+                        </div>
+
+                    `).join('');
+
+            }
+        }
+
+    </script>
+
+</body>
+</html>
